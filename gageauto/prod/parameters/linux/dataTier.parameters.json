@@ -1,0 +1,126 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "loadBalancerSettings": {
+      "value": {
+        "name": "gageauto-bdd-lb",
+        "frontendIPConfigurations": [
+          {
+            "name": "gageauto-bdd-lb-fe-config1",
+            "loadBalancerType": "internal",
+            "domainNameLabel": "",
+            "internalLoadBalancerSettings": {
+              "privateIPAddress": "172.20.1.250",
+              "subnetName": "bdd"
+            }
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "MariaDbListener",
+            "frontendPort": 3306,
+            "backendPort": 3306,
+            "protocol": "Tcp",
+            "backendPoolName": "lbmariadb-bep1",
+            "frontendIPConfigurationName": "gageauto-bdd-lb-fe-config1",
+            "probeName": "mariadb",
+            "enableFloatingIP": false
+          }
+        ],
+        "probes": [
+          {
+            "name": "mariadb",
+            "port": 3306,
+            "protocol": "tcp",
+            "intervalInSeconds": "5",
+            "numberOfProbes": "6" 
+          }
+        ],
+        "backendPools": [
+          {
+            "name": "lbmariadb-bep1",
+            "nicIndex": 0
+          }
+        ],
+        "inboundNatRules": [ ]
+      }
+    },
+    "virtualMachinesSettings": {
+      "value": {
+        "namePrefix": "srvgageautodb",
+        "computerNamePrefix": "_n_",
+        "size": "Standard_DS2_v2",
+        "adminUsername": "exploitation",
+        "adminPassword": "AweS0me@PW",
+        "osType": "linux",
+        "osAuthenticationType": "password",
+        "sshPublicKey": "",
+        "nics": [
+          {
+            "isPublic": "true",
+            "isPrimary": "true",
+            "subnetName": "data",
+            "publicIPAllocationMethod": "dynamic",
+            "privateIPAllocationMethod": "dynamic",
+            "enableIPForwarding": false,
+            "domainNameLabelPrefix": "rantierdatanode",
+            "dnsServers": [ ]
+          }
+        ],
+        "imageReference": {
+          "publisher": "RedHat",
+          "offer": "RHEL",
+          "sku": "7-RAW",
+          "version": "latest"
+        },
+        "osDisk": {
+          "osType": "Linux",
+		  "diskSizeGB": 32,
+		  "caching": "ReadWrite"
+        },
+        "dataDisks": {
+          "count": 1,
+          "properties": {
+            "diskSizeGB": 128,
+            "caching": "None",
+            "createOption": "Empty"
+          }
+        },
+        "extensions": [
+          {
+            "name": "puppet-config-ext",
+            "settingsConfigMapperUri": "https://raw.githubusercontent.com/mspnp/template-building-blocks/v1.0.0/templates/resources/Microsoft.Compute/virtualMachines/extensions/vm-extension-passthrough-settings-mapper.json",
+            "publisher": "Microsoft.OSTCExtensions",
+            "type": "CustomScriptForLinux",
+            "typeHandlerVersion": "1.5",
+            "autoUpgradeMinorVersion": true,
+            "settingsConfig": {
+              "fileUris": [ "https://raw.githubusercontent.com/AAA-DATA/cloud/master/scripts%20cloud/cloud/install-puppet.sh" ],
+              "commandToExecute": "sh install-puppet.sh 7"
+            },
+            "protectedSettingsConfig": { }
+          }
+        ],
+        "availabilitySet": {
+          "useExistingAvailabilitySet": "Yes",
+          "name": "gageauto-bdd-as"
+        }
+      }
+    },
+    "virtualNetworkSettings": {
+      "value": {
+        "name": "gageauto-vnet",
+        "resourceGroup": "gageauto-prod-rg"
+      }
+    },
+    "buildingBlockSettings": {
+      "value": {
+        "storageAccountsCount": 3,
+        "vmCount": 3,
+        "vmStartIndex": 1
+      }
+    }
+  }
+}
+

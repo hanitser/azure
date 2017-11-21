@@ -1,0 +1,34 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworkSettings": {
+      "value": {
+        "name": "gageauto-vnet",
+        "addressPrefixes": [
+          "172.20.0.0/22"
+        ],
+        "subnets": [
+          {
+            "name": "frt",
+            "addressPrefix": "172.20.0.0/24"
+          },
+          {
+            "name": "app",
+            "addressPrefix": "172.20.1.0/24"
+          },
+          {
+            "name": "bdd",
+            "addressPrefix": "172.20.2.0/24"
+          },
+          {
+            "name": "sys",
+            "addressPrefix": "172.20.3.0/24"
+          }
+        ],
+        "dnsServers": [ ]
+      }
+    }
+  }
+}
+
