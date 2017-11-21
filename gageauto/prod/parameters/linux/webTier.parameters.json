@@ -90,7 +90,7 @@
             "typeHandlerVersion": "1.5",
             "autoUpgradeMinorVersion": true,
             "settingsConfig": {
-              "fileUris": [ "https://raw.githubusercontent.com/AAA-DATA/cloud/master/scripts%20cloud/cloud/install-puppet.sh" ],
+              "fileUris": [ "https://raw.githubusercontent.com/AAA-DATA/cloud/master/install-puppet.sh" ],
               "commandToExecute": "sh install-puppet.sh 7"
             },
             "protectedSettingsConfig": { }
