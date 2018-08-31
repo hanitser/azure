@@ -29,4 +29,3 @@ function Create-AAACertificate {
 	
 	Export-PfxCertificate -Cert $cert -FilePath $certFilePath -Password $certPasswordSecureString
 }
-
