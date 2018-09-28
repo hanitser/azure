@@ -1,0 +1,290 @@
+{
+   "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+   "contentVersion": "0.9.0.0",
+   "parameters": {
+       "clusterName": {
+           "type": "string",
+           "metadata": {
+               "description": "The name of the HDInsight cluster to create."
+           }
+       },
+       "clusterLoginUserName": {
+           "type": "string",
+           "metadata": {
+               "description": "These credentials can be used to submit jobs to the cluster and to log into cluster dashboards."
+           }
+       },
+       "clusterLoginPassword": {
+           "type": "securestring",
+           "metadata": {
+               "description": "The password must be at least 10 characters in length and must contain at least one digit, one non-alphanumeric character, and one upper or lower case letter."
+           }
+       },
+       "location": {
+           "type": "string",
+           "defaultValue": "westeurope",
+           "metadata": {
+               "description": "The location where all azure resources will be deployed."
+           }
+       },
+       "clusterVersion": {
+           "type": "string",
+           "defaultValue": "3.6",
+           "metadata": {
+               "description": "HDInsight cluster version."
+           }
+       },
+       "HeadInstanceCount": {
+           "type": "string",
+           "metadata": {
+               "description": "The number of instances for Head Node(s)"
+           }
+       },
+       "HeadvmSize": {
+           "type": "string",
+           "metadata": {
+               "description": "The VM Size of each head node"
+           }
+       },
+       "WorkerInstanceCount": {
+           "type": "string",
+           "metadata": {
+               "description": "The number of instances for Worker Node(s)"
+           }
+       },
+       "WorkervmSize": {
+           "type": "string",
+           "metadata": {
+               "description": "The VM Size of each worker node"
+           }
+       },
+       "EdgeInstanceCount": {
+           "type": "string",
+           "metadata": {
+               "description": "The number of instances for Edge Node(s)"
+           }
+       },
+       "EdgevmSize": {
+           "type": "string",
+           "metadata": {
+               "description": "The VM Size of each edge node"
+           }
+       },
+       "clusterKind": {
+           "type": "string",
+           "metadata": {
+               "description": "The type of the HDInsight cluster to create."
+           }
+       },
+       "sshUserName": {
+           "type": "string",
+           "defaultValue": "sshuser",
+           "metadata": {
+               "description": "These credentials can be used to remotely access the cluster."
+           }
+       },
+       "sshPassword": {
+           "type": "securestring",
+           "metadata": {
+               "description": "The password must be at least 10 characters in length and must contain at least one digit, one non-alphanumeric character, and one upper or lower case letter."
+           }
+       },
+       "osType": {
+           "type": "string",
+           "allowedValues": [
+               "Linux",
+               "Windows"
+           ],
+           "metadata": {
+               "description": "The OS Type of the cluster. Can be Linux or Windows"
+           }
+       },
+       "Tier": {
+           "type": "string",
+           "metadata": {
+               "description": "The Tier of the cluster. Can be Standard or Basic"
+           }
+       },
+       "SubscriptionID": {
+           "type": "string",
+           "metadata": {
+               "description": "The ID of Azure Subscription"
+           }
+       },
+       "TenantID": {
+           "type": "string",
+           "metadata": {
+               "description": "The Tenant ID provided by MS"
+           }
+       },
+       "ApplicationID": {
+           "type": "string",
+           "metadata": {
+               "description": "The Application ID of SPN previously created"
+           }
+       },
+       "VirtualNetworkName": {
+           "type": "string",
+           "metadata": {
+               "description": "The Virtual Network be used for Worker Nodes"
+           }
+       },
+       "VirtualNetworkResourceGroupName": {
+           "type": "string",
+           "metadata": {
+               "description": "The Resource group for the VNET Concatenation"
+           }
+       },
+       "SubnetName": {
+           "type": "string",
+           "metadata": {
+               "description": "The Subnet be used for Worker Nodes"
+           }
+       },
+       "DataLakeStoreName": {
+           "type": "string",
+           "metadata": {
+               "description": "The Data Lake Store Name"
+           }
+       },
+       "identityCertificate": {
+           "type": "securestring",
+           "metadata": {
+               "description": "The Identity of certificate with base64 chain"
+           }
+       },
+       "identityCertificatePassword": {
+           "type": "securestring",
+           "metadata": {
+               "description": "The password of the certificate used by private Key"
+           }
+       }
+   },
+   "variables": {
+       "VnetID": "[concat('/subscriptions/', parameters('SubscriptionID'),'/resourceGroups/', parameters('VirtualNetworkResourceGroupName'),'/providers/Microsoft.Network/virtualNetworks/', parameters('VirtualNetworkName'))]",
+       "SubnetID": "[concat('/subscriptions/', parameters('SubscriptionID'),'/resourceGroups/', parameters('VirtualNetworkResourceGroupName'),'/providers/Microsoft.Network/virtualNetworks/', parameters('VirtualNetworkName'),'/subnets/', parameters('SubnetName'))]",
+       "hostnameADLS": "[concat( parameters('DataLakeStoreName'),'.azuredatalakestore.net')]",
+       "mountpointADLS":  "[concat('/clusters/', parameters('ClusterName'),'/')]",
+       "aadURL": "[concat('https://login.windows.net/', parameters('TenantID'))]"
+   },
+   "resources": [
+       {
+           "apiVersion": "2015-03-01-preview",
+           "name": "[parameters('clusterName')]",
+           "type": "Microsoft.HDInsight/clusters",
+           "location": "[parameters('location')]",
+           "dependsOn": [],
+           "properties": {
+               "clusterVersion": "[parameters('clusterVersion')]",
+               "osType": "[parameters('osType')]",
+               "tier": "[parameters('Tier')]",
+               "clusterDefinition": {
+                   "kind": "[parameters('clusterKind')]",
+                   "componentVersion": {
+                       "Hadoop": "2.7"
+                   },
+                   "configurations": {
+                       "gateway": {
+                           "restAuthCredential.isEnabled": true,
+                           "restAuthCredential.username": "[parameters('clusterLoginUserName')]",
+                           "restAuthCredential.password": "[parameters('clusterLoginPassword')]"
+                       },
+                       "core-site": {
+                           "fs.defaultFS": "adl://home",
+                           "dfs.adls.home.hostname": "[variables('hostnameADLS')]",
+                           "dfs.adls.home.mountpoint":"[variables('mountpointADLS')]",
+                           "dfs.adls.exploration.mountpoint":"/exploration",
+                           "dfs.adls.data.mountpoint":"/data"
+
+                       },
+                       "clusterIdentity": {
+                           "clusterIdentity.applicationId": "[parameters('ApplicationID')]",
+                           "clusterIdentity.certificate": "[parameters('identityCertificate')]",
+                           "clusterIdentity.aadTenantId":  "[variables('aadURL')]",
+                           "clusterIdentity.resourceUri": "https://datalake.azure.net/",
+                           "clusterIdentity.certificatePassword": "[parameters('identityCertificatePassword')]"
+                       }
+                   }
+               },
+               "storageProfile": {
+                   "storageaccounts": []
+               },
+               "computeProfile": {
+                   "roles": [
+                       {
+                           "name": "headnode",
+                           "minInstanceCount": 1,
+                           "targetInstanceCount":"[parameters('HeadInstanceCount')]",
+                           "hardwareProfile": {
+                               "vmSize": "[parameters('HeadvmSize')]"
+                           },
+                           "osProfile": {
+                               "linuxOperatingSystemProfile": {
+                                   "username": "[parameters('sshUserName')]",
+                                   "password": "[parameters('sshPassword')]"
+                               }
+                           },
+                           "virtualNetworkProfile": {
+                               "id": "[variables('VnetID')]",
+                               "subnet": "[variables('SubnetID')]"
+                           },
+                           "scriptActions": []
+                       },
+                       {
+                           "name": "workernode",
+                           "minInstanceCount": 1,
+                           "targetInstanceCount": "[parameters('WorkerInstanceCount')]",
+                           "hardwareProfile": {
+                               "vmSize": "[parameters('WorkervmSize')]"
+                           },
+                           "osProfile": {
+                               "linuxOperatingSystemProfile": {
+                                   "username": "[parameters('sshUserName')]",
+                                   "password": "[parameters('sshPassword')]"
+                               }
+                           },
+                           "virtualNetworkProfile": {
+                               "id": "[variables('VnetID')]",
+                               "subnet": "[variables('SubnetID')]"
+                           },
+                           "scriptActions": []
+                       },
+                       {
+                           "name": "zookeepernode",
+                           "minInstanceCount": 1,
+                           "targetInstanceCount": 3,
+                           "hardwareProfile": {
+                               "vmSize": "Small"
+                           },
+                           "osProfile": {
+                               "linuxOperatingSystemProfile": {
+                                   "username": "[parameters('sshUserName')]",
+                                   "password": "[parameters('sshPassword')]"
+                               }
+                           },
+                           "virtualNetworkProfile": {
+                               "id": "[variables('VnetID')]",
+                               "subnet": "[variables('SubnetID')]"
+                           },
+                           "scriptActions": []
+                       },
+                       {
+                        "name": "edgenode",
+                        "minInstanceCount": 1,
+                        "targetInstanceCount": "[parameters('EdgeInstanceCount')]",
+                        "hardwareProfile": {
+                          "vmSize": "[parameters('EdgevmSize')]"
+                        },
+                        "osProfile": {
+                          "linuxOperatingSystemProfile": {
+                           "username": "[parameters('sshUserName')]",
+                           "password": "[parameters('sshPassword')]"
+                       }
+                     }
+               }
+            ]
+         }
+       }
+      }
+   ]
+}
