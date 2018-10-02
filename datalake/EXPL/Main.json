@@ -188,7 +188,9 @@
                         "gateway": {
                             "restAuthCredential.isEnabled": true,
                             "restAuthCredential.username": "[parameters('clusterLoginUserName')]",
-                            "restAuthCredential.password": "[parameters('clusterLoginPassword')]"
+                            "restAuthCredential.password": "[parameters('clusterLoginPassword')]",
+                            "restAuthCredential.username2":"test",
+                            "restAuthCredential.password2":"P@ssword1"
                         },
                         "core-site": {
                             "fs.defaultFS": "adl://home",
