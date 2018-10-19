@@ -2,47 +2,47 @@
     "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
     "contentVersion": "0.9.0.0",
     "parameters": {
-        "clusterName": {
+        "ClusterName": {
             "type": "string",
             "metadata": {
                 "description": "The name of the HDInsight cluster to create."
             }
         },
-        "clusterLoginUserName": {
+        "ClusterLoginUsername": {
             "defaultValue": "hdiuser",
             "type": "string",
             "metadata": {
                 "description": "These credentials can be used to submit jobs to the cluster and to log into cluster dashboards."
             }
         },
-        "clusterLoginPassword": {
+        "ClusterLoginPassword": {
             "type": "securestring",
             "metadata": {
                 "description": "The password must be at least 10 characters in length and must contain at least one digit, one non-alphanumeric character, and one upper or lower case letter."
             }
         },
-        "location": {
+        "Location": {
             "type": "string",
             "defaultValue": "westeurope",
             "metadata": {
                 "description": "The location where all azure resources will be deployed."
             }
         },
-        "clusterComponentVersion": {
+        "ClusterComponentVersion": {
             "type": "string",
             "defaultValue": "2.3",
             "metadata": {
                 "description": "Component cluster version."
             }
         },
-        "clusterComponent": {
+        "ClusterComponent": {
             "type": "string",
             "defaultValue": "spark",
             "metadata": {
                 "description": "Component cluster type."
             }
         },
-        "clusterVersion": {
+        "ClusterVersion": {
             "type": "string",
             "defaultValue": "3.6",
             "metadata": {
@@ -55,7 +55,7 @@
                 "description": "The number of instances for Head Node(s)"
             }
         },
-        "HeadvmSize": {
+        "HeadVmSize": {
             "type": "string",
             "metadata": {
                 "description": "The VM Size of each head node"
@@ -67,33 +67,33 @@
                 "description": "The number of instances for Worker Node(s)"
             }
         },
-        "WorkervmSize": {
+        "WorkerVmSize": {
             "type": "string",
             "metadata": {
                 "description": "The VM Size of each worker node"
             }
         },
-        "clusterKind": {
+        "ClusterKind": {
             "defaultValue": "spark",
             "type": "string",
             "metadata": {
                 "description": "The type of the HDInsight cluster to create."
             }
         },
-        "sshUserName": {
+        "SshUsername": {
             "type": "string",
             "defaultValue": "sshuser",
             "metadata": {
                 "description": "These credentials can be used to remotely access the cluster."
             }
         },
-        "sshPassword": {
+        "SshPassword": {
             "type": "securestring",
             "metadata": {
                 "description": "The password must be at least 10 characters in length and must contain at least one digit, one non-alphanumeric character, and one upper or lower case letter."
             }
         },
-        "osType": {
+        "OsType": {
             "type": "string",
             "defaultValue": "Linux",
             "allowedValues": [
@@ -109,6 +109,18 @@
             "type": "string",
             "metadata": {
                 "description": "The Tier of the cluster. Should be Premium for Domain joined // else Standard or Basic"
+            }
+        },
+        "ScriptAdminUri": {
+            "type": "string",
+            "metadata": {
+                "description": "The URI of the script who grants ldap users as admins"
+            }
+        },
+        "ScriptAdminParams": {
+            "type": "string",
+            "metadata": {
+                "description": "The parameters of the script who grants ldap users as admins"
             }
         },
         "SubscriptionID": {
@@ -177,7 +189,7 @@
                 "description": "The Subnet be used for Nodes"
             }
         },
-        "DataLakeStoreName": {
+        "DatalakeStoreName": {
             "type": "string",
             "metadata": {
                 "description": "The Data Lake Store Name"
@@ -199,48 +211,48 @@
     "variables": {
         "VnetID": "[concat('/subscriptions/', parameters('SubscriptionID'),'/resourceGroups/', parameters('VirtualNetworkResourceGroupName'),'/providers/Microsoft.Network/virtualNetworks/', parameters('VirtualNetworkName'))]",
         "SubnetID": "[concat('/subscriptions/', parameters('SubscriptionID'),'/resourceGroups/', parameters('VirtualNetworkResourceGroupName'),'/providers/Microsoft.Network/virtualNetworks/', parameters('VirtualNetworkName'),'/subnets/', parameters('SubnetName'))]",
-        "aaddsResourceId": "[concat('/subscriptions/', parameters('SubscriptionID'),'/resourceGroups/',parameters('ActiveDirectoryResourceGroupName'),'/providers/Microsoft.AAD/domainServices/', parameters('AzureADDomain'))]",
-        "ldapsUrls": "[concat('ldaps://',parameters('AzureADDomain'),':636')]",
-        "msiResourceId": "[concat('/subscriptions/', parameters('SubscriptionID'), '/resourcegroups/', parameters('ActiveDirectoryResourceGroupName'),'/providers/Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('MSIName'))]",
-        "hostnameADLS": "[concat( parameters('DataLakeStoreName'),'.azuredatalakestore.net')]",
-        "mountpointADLS":  "[concat('/clusters/', parameters('ClusterName'),'/')]",
-        "mountpointDTLK": "/datalake",
-        "aadURL": "[concat('https://login.windows.net/', parameters('TenantID'))]"
+        "AaddsResourceID": "[concat('/subscriptions/', parameters('SubscriptionID'),'/resourceGroups/',parameters('ActiveDirectoryResourceGroupName'),'/providers/Microsoft.AAD/domainServices/', parameters('AzureADDomain'))]",
+        "LdapsUrls": "[concat('ldaps://',parameters('AzureADDomain'),':636')]",
+        "MsiResourceID": "[concat('/subscriptions/', parameters('SubscriptionID'), '/resourcegroups/', parameters('ActiveDirectoryResourceGroupName'),'/providers/Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('MSIName'))]",
+        "HostnameADLS": "[concat( parameters('DatalakeStoreName'),'.azuredatalakestore.net')]",
+        "MountpointADLS":  "[concat('/clusters/', parameters('ClusterName'),'/')]",
+        "MountpointDTLK": "/datalake",
+        "AadURL": "[concat('https://login.windows.net/', parameters('TenantID'))]"
     },
     "resources": [
         {
             "apiVersion": "2015-03-01-preview",
             "name": "[parameters('clusterName')]",
             "type": "Microsoft.HDInsight/clusters",
-            "location": "[parameters('location')]",
+            "location": "[parameters('Location')]",
             "dependsOn": [],
             "properties": {
-                "clusterVersion": "[parameters('clusterVersion')]",
-                "osType": "[parameters('osType')]",
+                "clusterVersion": "[parameters('ClusterVersion')]",
+                "osType": "[parameters('OsType')]",
                 "tier": "[parameters('Tier')]",
                 "clusterDefinition": {
-                    "kind": "[parameters('clusterKind')]",
+                    "kind": "[parameters('ClusterKind')]",
                     "componentVersion": {
-                        "[parameters('clusterComponent')]": "[parameters('clusterComponentVersion')]"
+                        "[parameters('ClusterComponent')]": "[parameters('ClusterComponentVersion')]"
                     },
                     "configurations": {
                         "gateway": {
                             "restAuthCredential.isEnabled": true,
-                            "restAuthCredential.username": "[parameters('clusterLoginUserName')]",
-                            "restAuthCredential.password": "[parameters('clusterLoginPassword')]"
+                            "restAuthCredential.username": "[parameters('ClusterLoginUsername')]",
+                            "restAuthCredential.password": "[parameters('ClusterLoginPassword')]"
                         },
                         "core-site": {
                             "fs.defaultFS": "adl://home",
-                            "dfs.adls.home.hostname": "[variables('hostnameADLS')]",
-                            "dfs.adls.home.mountpoint":"[variables('mountpointADLS')]",
-                            "dfs.adls.datalake.mountpoint": "[variables('mountpointDTLK')]"
+                            "dfs.adls.home.hostname": "[variables('HostnameADLS')]",
+                            "dfs.adls.home.mountpoint":"[variables('MountpointADLS')]",
+                            "dfs.adls.datalake.mountpoint": "[variables('MountpointDTLK')]"
                         },
                         "clusterIdentity": {
                             "clusterIdentity.applicationId": "[parameters('ApplicationID')]",
-                            "clusterIdentity.certificate": "[parameters('identityCertificate')]",
-                            "clusterIdentity.aadTenantId":  "[variables('aadURL')]",
+                            "clusterIdentity.certificate": "[parameters('IdentityCertificate')]",
+                            "clusterIdentity.aadTenantId":  "[variables('AadURL')]",
                             "clusterIdentity.resourceUri": "https://datalake.azure.net/",
-                            "clusterIdentity.certificatePassword": "[parameters('identityCertificatePassword')]"
+                            "clusterIdentity.certificatePassword": "[parameters('IdentityCertificatePassword')]"
                         }
                     }
                 },
@@ -255,31 +267,37 @@
                             "minInstanceCount": 1,
                             "targetInstanceCount":"[parameters('HeadInstanceCount')]",
                             "hardwareProfile": {
-                                "vmSize": "[parameters('HeadvmSize')]"
+                                "vmSize": "[parameters('HeadVmSize')]"
                             },
                             "osProfile": {
                                 "linuxOperatingSystemProfile": {
-                                    "username": "[parameters('sshUserName')]",
-                                    "password": "[parameters('sshPassword')]"
+                                    "username": "[parameters('SshUsername')]",
+                                    "password": "[parameters('SshPassword')]"
                                 }
                             },
                             "virtualNetworkProfile": {
                                 "id": "[variables('VnetID')]",
                                 "subnet": "[variables('SubnetID')]"
                             },
-                            "scriptActions": []
-                        },
+                            "scriptActions": [
+                                {
+                                  "name": "GrantAdmins",
+                                  "uri": "[parameters('ScriptAdminUri')]",
+                                  "parameters": "[parameters('ScriptAdminParams')]"
+                        }
+                    ]
+                },
                         {
                             "name": "workernode",
                             "minInstanceCount": 1,
                             "targetInstanceCount": "[parameters('WorkerInstanceCount')]",
                             "hardwareProfile": {
-                                "vmSize": "[parameters('WorkervmSize')]"
+                                "vmSize": "[parameters('WorkerVmSize')]"
                             },
                             "osProfile": {
                                 "linuxOperatingSystemProfile": {
-                                    "username": "[parameters('sshUserName')]",
-                                    "password": "[parameters('sshPassword')]"
+                                    "username": "[parameters('SshUsername')]",
+                                    "password": "[parameters('SshPassword')]"
                                 }
                             },
                             "virtualNetworkProfile": {
@@ -301,14 +319,14 @@
                         "[parameters('AzureADGroup')]",
                         "SYS_USERS"
                     ],
-                    "aaddsResourceId": "[variables('aaddsResourceId')]",
-                    "msiResourceId": "[variables('msiResourceId')]"
+                    "aaddsResourceId": "[variables('AaddsResourceID')]",
+                    "msiResourceId": "[variables('MsiResourceID')]"
                 }
             },
             "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
-                    "[variables('msiResourceId')]": {}
+                    "[variables('MsiResourceID')]": {}
                 }
             }
         }
