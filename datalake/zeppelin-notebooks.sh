@@ -1,18 +1,16 @@
 #! /bin/bash
-INSTALL_DIR=/usr/hdp/current/zeppelin-server
 
-# Import the helper method module.
-wget -O /tmp/HDInsightUtilities-v01.sh -q https://hdiconfigactions.blob.core.windows.net/linuxconfigactionmodulev01/HDInsightUtilities-v01.sh && source /tmp/HDInsightUtilities-v01.sh && rm -f /tmp/HDInsightUtilities-v01.sh
+# Declare variables
+USERID=$(echo -e "import hdinsight_common.Constants as Constants\nprint Constants.AMBARI_WATCHDOG_USERNAME" | python)
+PASSWD=$(echo -e "import hdinsight_common.ClusterManifestParser as ClusterManifestParser\nimport hdinsight_common.Constants as Constants\nimport base64\nbase64pwd = ClusterManifestParser.parse_local_manifest().ambari_users.usersmap[Constants.AMBARI_WATCHDOG_USERNAME].password\nprint base64.b64decode(base64pwd)" | python)
+TAG='notebookconf'
+STORAGEACCOUNT='staaadatahdinsight'
+STORAGEKEY='nzMQVaSKaKkBOGueDpdDwWS9s/UN7GHTROB4qXySnop8xc8+5X5ulzGuNXK+9z+x/SwpA+OV4ROUkxcxSPBulA=='
 
-fullHostName=$(hostname -f)
-echo "fullHostName=$fullHostName"
-if [[ $fullHostName != headnode0* && $fullHostName != hn0* ]]; then
-    echo "$fullHostName is not headnode 0. This script has to be run on headnode 0."
-    exit 0
-fi
+## Update conf
+curl -u $USERID:$PASSWD -H "X-Requested-By: ambari" -X PUT -d '[{"Clusters":{ "desired_config":[{"type":"zeppelin-config","tag":"$TAG","properties":{"zeppelin.anonymous.allowed" : "true","zeppelin.config.fs.dir" : "file:///etc/zeppelin/conf/","zeppelin.interpreter.config.upgrade" : "true","zeppelin.interpreter.connect.timeout" : "30000", "zeppelin.interpreter.dir" : "interpreter","zeppelin.interpreter.group.order" : "livy,md,sh,angular,jdbc","zeppelin.interpreters" : "org.apache.zeppelin.livy.LivySparkInterpreter,org.apache.zeppelin.livy.LivyPySparkInterpreter,org.apache.zeppelin.livy.LivySparkSQLInterpreter,org.apache.zeppelin.markdown.Markdown,org.apache.zeppelin.shell.ShellInterpreter,org.apache.zeppelin.angular.AngularInterpreter,org.apache.zeppelin.jdbc.JDBCInterpreter","zeppelin.notebook.azure.connectionString" : "DefaultEndpointsProtocol=https;AccountName=$STORAGEACCOUNT;AccountKey=$STORAGEKEY","zeppelin.notebook.azure.share" : "zeppelin", "zeppelin.notebook.dir" : "notebook", "zeppelin.notebook.homescreen" : " ", "zeppelin.notebook.homescreen.hide" : "false", "zeppelin.notebook.public" : "false","zeppelin.notebook.s3.bucket" : "zeppelin","zeppelin.notebook.s3.user" : "user", "zeppelin.notebook.storage" : "org.apache.zeppelin.notebook.repo.AzureNotebookRepo", "zeppelin.server.addr" : "0.0.0.0","zeppelin.server.allowed.origins" : "*", "zeppelin.server.authorization.header.clear" : "false","zeppelin.server.port" : "9995","zeppelin.server.ssl.port" : "9995","zeppelin.ssl" : "false","zeppelin.ssl.client.auth" : "false","zeppelin.ssl.key.manager.password" : "SECRET:zeppelin-config:4:zeppelin.ssl.key.manager.password","zeppelin.ssl.keystore.password" : "SECRET:zeppelin-config:4:zeppelin.ssl.keystore.password","zeppelin.ssl.keystore.path" : "conf/keystore","zeppelin.ssl.keystore.type" : "JKS","zeppelin.ssl.truststore.password" : "SECRET:zeppelin-config:4:zeppelin.ssl.truststore.password","zeppelin.ssl.truststore.path" : "conf/truststore", "zeppelin.ssl.truststore.type" : "JKS", "zeppelin.websocket.max.text.message.size" : "1024000"}, "service_config_version_note":"New config version"}]}}]' http://headnodehost:8080/api/v1/clusters/$1
 
-download_file https://staaadatahdinsight.blob.core.windows.net/zeppelin-conf/zeppelin-site.xml $INSTALL_DIR/conf/zeppelin-site.xml
+# Restart services
+curl -u $USERID:$PASSWD -i -H 'X-Requested-By: ambari' -X PUT -d '{"ServiceInfo": {"state" : "INSTALLED"}}' http://headnodehost:8080/api/v1/clusters/$1/services/ZEPPELIN
 
-$INSTALL_DIR/bin/zeppelin-daemon.sh stop
-$INSTALL_DIR/bin/zeppelin-daemon.sh start
-echo "Installation succeeded"
+curl -u $USERID:$PASSWD -i -H 'X-Requested-By: ambari' -X PUT -d '{"ServiceInfo": {"state" : "STARTED"}}'  http://headnodehost:8080/api/v1/clusters/$1/services/ZEPPELIN
