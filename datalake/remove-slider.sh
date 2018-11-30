@@ -5,5 +5,4 @@ PASSWD=$(echo -e "import hdinsight_common.ClusterManifestParser as ClusterManife
 
 
 ## Remove SLIDER Service
-curl -u $USERID:$PASSWD -i -H 'X-Requested-By: ambari' -X DELETE  http://headnodehost:8080/api/v1/clusters/$1/services/SLIDER 
- 
+curl -u $USERID:$PASSWD -i -H 'X-Requested-By: ambari' -X DELETE  http://headnodehost:8080/api/v1/clusters/$1/services/SLIDER
